@@ -1,5 +1,5 @@
 import { startBattleFactory } from "./battle.js";
-import { Card, brute, knight, wizard } from "./cards.js";
+import { Stats, brute, knight, wizard } from "./cards.js";
 
 const body = document.querySelector("body");
 if (body === null) throw new Error("body is null");
@@ -10,7 +10,7 @@ container.classList.add("container");
 body.append(container);
 
 export type Player = {
-  deck: Card[];
+  deck: Stats[];
   hp: number;
 };
 

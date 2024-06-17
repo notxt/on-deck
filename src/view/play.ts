@@ -3,21 +3,10 @@ import { html, querySelectorFactory } from "../lib.js";
 import { createCard } from "./card.js";
 
 const template = document.createElement("template");
-template.innerHTML = html`
-  <style>
-    main {
-      border: dotted;
-      display: flex;
-      gap: 20px;
-      padding: 20px;
-      justify-content: space-evenly;
-    }
-  </style>
-  <header>Hand</header>
-  <main></main>
-`;
+template.innerHTML = html` <style></style>
+  <main></main>`;
 
-export class Hand extends HTMLElement {
+export class Play extends HTMLElement {
   #main: HTMLElement;
 
   constructor() {
@@ -35,8 +24,18 @@ export class Hand extends HTMLElement {
   }
 
   update(deck: Deck) {
-    this.#main.replaceChildren(...deck.hand.map((card) => createCard(card)));
+    this.#main.replaceChildren(
+      ...deck.play.map((slot) => {
+        const div = document.createElement("div");
+        if (slot === null) return div;
+
+        const card = createCard(slot);
+        div.appendChild(card);
+
+        return div;
+      })
+    );
   }
 }
 
-customElements.define("x-hand", Hand);
+customElements.define("x-play", Play);

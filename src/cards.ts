@@ -1,6 +1,6 @@
 export type CardType = "wizard" | "brute" | "knight";
 
-export type Card = {
+export type Stats = {
   at: number;
   hp: number;
   type: CardType;
@@ -14,7 +14,7 @@ const wizardArt =
  |‾‾|‾‾
    / \\`
 
-export const wizard: Card = {
+export const wizard: Stats = {
   at: 9,
   hp: 1,
   type: "wizard",
@@ -27,7 +27,7 @@ const knightArt =
 ⌝‾| (+)
   |‾|`;
 
-export const knight: Card = {
+export const knight: Stats = {
   at: 4,
   hp: 4,
   type: "knight",
@@ -41,7 +41,7 @@ const bruteArt =
 L|=====|⅃
  |/   \\|`;
 
-export const brute: Card = {
+export const brute: Stats = {
   at: 1,
   hp: 9,
   type: "brute",

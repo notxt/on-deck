@@ -1,86 +1,33 @@
-import { Card } from "./cards.js";
+import { Stats } from "./cards.js";
 import { Opponent, Player } from "./main.js";
-import { createHand } from "./view/hand.js";
+import { Hand } from "./view/hand.js";
+import { Play } from "./view/play.js";
+import { View } from "./view/view.js";
 
 const { random, floor } = Math;
 
-type State = {
+type Position = "discard" | "draw" | "hand" | "play";
+export type Card = Stats & {
+  id: string;
+  position: Position;
+};
+export type Slot = Card | null;
+
+export type State = {
   player: {
+    deck: Card[];
     hp: number;
   };
   opponent: {
+    deck: Card[];
     hp: number;
   };
-  discard: Card[];
-  draw: Card[];
-  hand: Card[];
-  play: Card[];
 };
 
-const renderDraw = (state: State): HTMLElement => {
-  const count = document.createElement("p");
-  count.textContent = state.draw.length.toString();
+export type Deck = { [key in Position]: Card[] };
 
-  const draw = document.createElement("div");
-  draw.appendChild(count);
-
-  return draw;
-};
-
-const renderDiscard = (state: State): HTMLElement => {
-  const count = document.createElement("p");
-  count.textContent = state.discard.length.toString();
-
-  const discard = document.createElement("div");
-  discard.appendChild(count);
-
-  return discard;
-};
-
-const render = (state: State): HTMLElement => {
-  if (state.player.hp < 1) return lose();
-  if (state.opponent.hp < 1) return win();
-
-  const battleContent = document.createElement("div");
-  battleContent.textContent = `HP: ???`;
-
-  const draw = renderDraw(state);
-  const hand = createHand(state.hand);
-  const discard = renderDiscard(state);
-
-  const cardContent = document.createElement("div");
-  cardContent.append(draw, hand, discard);
-
-  const content = document.createElement("div");
-  content.append(battleContent, cardContent);
-
-  return content;
-};
-
-type Update = (state: State) => void;
-const updateFactory =
-  (view: HTMLElement): Update =>
-  (state) => {
-    const content = render(state);
-    view.replaceChildren(content);
-  };
-
-const win = (): HTMLElement => {
-  const win = document.createElement("p");
-  win.textContent = "You win!";
-
-  return win;
-};
-
-const lose = (): HTMLElement => {
-  const lose = document.createElement("p");
-  lose.textContent = "You lose";
-
-  return lose;
-};
-
-const shuffle = (cards: Card[]): Card[] => {
-  const shuffled: Card[] = [];
+const shuffle = (cards: Stats[]): Stats[] => {
+  const shuffled: Stats[] = [];
 
   let deck = cards;
   while (deck.length > 0) {
@@ -94,55 +41,45 @@ const shuffle = (cards: Card[]): Card[] => {
     deck.splice(i, 1);
   }
 
-  console.log(cards, shuffled);
-
   return shuffled;
 };
 
-const handSize = 3;
-const drawFactory = (update: Update) => (state: State) => {
-  let { hand, draw, discard } = state;
+const createCard = (stats: Stats): Card => {
+  const { hp, art, at, type } = stats;
 
-  if (hand.length >= handSize) return update(state);
+  const card: Card = {
+    hp,
+    art,
+    at,
+    id: crypto.randomUUID(),
+    position: "draw",
+    type,
+  };
 
-  while (hand.length < handSize) {
-    if (draw.length < 1) {
-      draw = state.discard;
-      discard = [];
-    }
-    const [card, ...rest] = draw;
-    if (typeof card === "undefined")
-      throw new Error(`Card is undefined
-draw: ${draw}
-hand: ${hand}
-discard: ${discard}
-      `);
-
-    hand = [card, ...hand];
-    draw = rest;
-  }
-
-  state.draw = draw;
-  state.hand = hand;
-  state.discard = discard;
-
-  return update(state);
+  return card;
 };
 
 export const startBattleFactory =
-  (view: HTMLElement) => (config: { player: Player; opponent: Opponent }) => {
+  (container: HTMLElement) =>
+  (config: { player: Player; opponent: Opponent }) => {
     const { player, opponent } = config;
 
     const state: State = {
-      player,
-      opponent,
-      discard: [],
-      draw: shuffle(player.deck),
-      hand: [],
-      play: [],
+      player: {
+        hp: player.hp,
+        deck: shuffle(player.deck).map(createCard),
+      },
+      opponent: {
+        hp: opponent.hp,
+        deck: [],
+      },
     };
 
-    const update = updateFactory(view);
-    const draw = drawFactory(update);
-    draw(state);
+    const view = new View({
+      play: new Play(),
+      hand: new Hand(),
+    });
+    container.appendChild(view);
+
+    view.update(state);
   };

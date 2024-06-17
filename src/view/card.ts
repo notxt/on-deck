@@ -1,4 +1,4 @@
-import { Card } from "../cards.js";
+import { Stats } from "../cards.js";
 import { getElementByIdFactory, html, querySelectorFactory } from "../lib.js";
 
 const template = document.createElement("template");
@@ -43,7 +43,7 @@ template.innerHTML = html`
 `;
 
 class El extends HTMLElement {
-  constructor(card: Card) {
+  constructor(card: Stats) {
     super();
 
     this.attachShadow({ mode: "open" });
@@ -68,7 +68,7 @@ class El extends HTMLElement {
 
 customElements.define("x-card", El);
 
-export const createCard = (card: Card): HTMLElement => {
+export const createCard = (card: Stats): HTMLElement => {
   const el = new El(card);
 
   return el;
