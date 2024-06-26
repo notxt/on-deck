@@ -23,10 +23,3 @@ body {
   color: var(--color-body-font);
   font-family: monospace;
 }
-
-.container {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}

@@ -1,31 +1,17 @@
-import { startBattleFactory } from "./battle.js";
-import { Stats, brute, knight, wizard } from "./cards.js";
+import { createAction } from "./action.js";
+import { createState } from "./state.js";
+import { createView } from "./view.js";
 
 const body = document.querySelector("body");
 if (body === null) throw new Error("body is null");
 
-const container = document.createElement("div");
-container.classList.add("container");
+const state = createState();
 
-body.append(container);
+const { action, update } = createAction(state);
 
-export type Player = {
-  deck: Stats[];
-  hp: number;
-};
+const view = createView(action);
 
-const player: Player = {
-  deck: [knight, knight, knight, knight, wizard, wizard, brute, brute, brute],
-  hp: 50,
-};
+view.update(state);
+update((state) => view.update(state));
 
-export type Opponent = {
-  hp: number;
-};
-
-const opponent: Opponent = {
-  hp: 10,
-};
-
-const startBattle = startBattleFactory(container);
-startBattle({ player, opponent });
+body.appendChild(view.el);

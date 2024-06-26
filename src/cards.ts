@@ -1,49 +1,13 @@
-export type CardType = "wizard" | "brute" | "knight";
+import { Card } from "./state.js";
 
-export type Stats = {
-  at: number;
-  hp: number;
-  type: CardType;
-  art: string;
+export const attackCard: Card = {
+  type: "attack",
 };
 
-// prettier-ignore
-const wizardArt = 
-`>@<
- | ~o~
- |‾‾|‾‾
-   / \\`
-
-export const wizard: Stats = {
-  at: 9,
-  hp: 1,
-  type: "wizard",
-  art: wizardArt,
+export const blockCard: Card = {
+  type: "block",
 };
 
-// prettier-ignore
-const knightArt = 
-`|  ∩
-⌝‾| (+)
-  |‾|`;
-
-export const knight: Stats = {
-  at: 4,
-  hp: 4,
-  type: "knight",
-  art: knightArt,
-};
-
-// prettier-ignore
-const bruteArt = 
-`  (_ _)
-/‾‾   ‾‾\\
-L|=====|⅃
- |/   \\|`;
-
-export const brute: Stats = {
-  at: 1,
-  hp: 9,
-  type: "brute",
-  art: bruteArt,
+export const throwCard: Card = {
+  type: "throw",
 };
