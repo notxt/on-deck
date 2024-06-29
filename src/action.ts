@@ -6,6 +6,7 @@ import {
   BattleState,
   Card,
   Fighter,
+  Round,
   State,
 } from "./state.js";
 
@@ -69,6 +70,7 @@ export const createAction = (state: State) => {
     dragonDeck.play.push(topCard);
 
     const battle: BattleState = {
+      rounds: [],
       phase: "draw",
       dragon: {
         stats: dragon.stats,
@@ -82,8 +84,6 @@ export const createAction = (state: State) => {
 
     state.mode = "battle";
     state.battle = battle;
-
-    console.log(state);
 
     update(state);
   };
@@ -124,6 +124,18 @@ export const createAction = (state: State) => {
 
     state.battle.knight.deck.hand.splice(index, 1);
     state.battle.knight.deck.play.push(cardToPlay);
+
+    state.battle.phase = "fight";
+
+    const dragonCard = state.battle.dragon.deck.play[0];
+    if (typeof dragonCard === "undefined")
+      throw new Error("dragon play card is undefined");
+
+    const round: Round = {
+      knight: cardToPlay,
+      dragon: dragonCard,
+    };
+    state.battle.rounds.push(round);
 
     update(state);
   };

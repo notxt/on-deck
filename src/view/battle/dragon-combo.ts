@@ -14,6 +14,11 @@ template.innerHTML = html`
       gap: 10px;
     }
 
+    main {
+      border: dotted;
+      padding: 20px;
+    }
+
     .cards {
       display: flex;
       gap: 20px;

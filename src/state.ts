@@ -28,11 +28,18 @@ type BattleFighter = {
   deck: BattleDeck;
 };
 
-type BattlePhase = "draw" | "play" | "fight";
+export type BattlePhase = "draw" | "play" | "fight";
+
+export type Round = {
+  dragon: BattleCard;
+  knight: BattleCard;
+};
+
 export type BattleState = {
   phase: BattlePhase;
   dragon: BattleFighter;
   knight: BattleFighter;
+  rounds: Round[];
 };
 
 type GameMode = "title" | "battle";

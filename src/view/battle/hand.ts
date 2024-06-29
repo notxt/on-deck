@@ -1,13 +1,23 @@
 import { BattleAction } from "../../action.js";
-import { html, querySelectorFactory } from "../../lib.js";
-import { BattleCard } from "../../state.js";
+import {
+  getElementByIdFactory,
+  html,
+  querySelectorFactory,
+} from "../../lib.js";
+import { BattleCard, BattlePhase } from "../../state.js";
 import { BattleView } from "../battle.js";
 import { CardEl } from "./card.js";
 
 const template = document.createElement("template");
 
+const wrapperId = "wrapper";
+
 template.innerHTML = html`
   <style>
+    .active {
+      color: magenta;
+    }
+
     main {
       border: dotted;
       display: flex;
@@ -23,11 +33,15 @@ template.innerHTML = html`
       gap: 10px;
     }
   </style>
-  <header>Hand</header>
-  <main></main>
+
+  <div id="${wrapperId}">
+    <header>Hand</header>
+    <main></main>
+  </div>
 `;
 
 class El extends HTMLElement {
+  #wrapper: HTMLElement;
   #container: HTMLElement;
 
   constructor() {
@@ -39,13 +53,24 @@ class El extends HTMLElement {
 
     root.appendChild(template.content.cloneNode(true));
 
+    const getElementById = getElementByIdFactory(root);
     const querySelector = querySelectorFactory(root);
 
+    this.#wrapper = getElementById(wrapperId);
     this.#container = querySelector("main");
   }
 
   set hand(cards: HTMLElement[]) {
     this.#container.replaceChildren(...cards);
+  }
+
+  set phase(phase: BattlePhase) {
+    if (phase === "play") {
+      this.#wrapper.classList.add("active");
+      return;
+    }
+
+    this.#wrapper.classList.remove("active");
   }
 }
 
@@ -55,6 +80,8 @@ export const createHand = (action: BattleAction): BattleView => {
   const el = new El();
 
   const update: BattleView["update"] = (battle) => {
+    el.phase = battle.phase;
+
     if (battle.phase !== "play") {
       const cards = battle.knight.deck.hand.map((card) => new CardEl(card));
       el.hand = cards;

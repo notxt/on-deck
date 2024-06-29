@@ -25,16 +25,18 @@ export const getElementByIdFactory = (shadow: ShadowRoot) => (id: string) => {
 type SelectorMap = {
   button: HTMLButtonElement;
   h1: HTMLHeadingElement;
+  header: HTMLElement;
   main: HTMLElement;
   p: HTMLParagraphElement;
   pre: HTMLPreElement;
+  tbody: HTMLTableSectionElement;
   ul: HTMLUListElement;
 };
 
 export const querySelectorFactory =
   (shadow: ShadowRoot) =>
   <S extends keyof SelectorMap>(selector: S): SelectorMap[S] => {
-    // const test = shadow.querySelector("button");
+    // const test = shadow.querySelector("tbody");
     const el = shadow.querySelector(selector);
     if (el === null) throw new Error(`${selector} is null`);
     return el;

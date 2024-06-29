@@ -1,6 +1,7 @@
 import { BattleAction } from "../action.js";
 import { getElementByIdFactory, html } from "../lib.js";
 import { BattleState } from "../state.js";
+import { createComboTable } from "./battle/combo-table.js";
 import { createDiscard } from "./battle/discard.js";
 import { createDragonCombo } from "./battle/dragon-combo.js";
 import { createDragonStats } from "./battle/dragon-stats.js";
@@ -8,9 +9,11 @@ import { createDraw } from "./battle/draw.js";
 import { createHand } from "./battle/hand.js";
 import { createKnightCombo } from "./battle/knight-combo.js";
 import { createKnightStats } from "./battle/knight-stats.js";
+import { createPhase } from "./battle/phase.js";
 
 const template = document.createElement("template");
 
+const comboTableId = "combo-table";
 const discardId = "discard";
 const dragonComboId = "dragon-combo";
 const dragonStatsId = "dragon";
@@ -18,6 +21,7 @@ const drawId = "draw";
 const handId = "hand";
 const knightComboId = "knight-combo";
 const knightStatsId = "knight";
+const phaseId = "phase";
 const resetGameId = "reset-game";
 
 template.innerHTML = html`
@@ -46,16 +50,21 @@ template.innerHTML = html`
       grid-column: 6/7;
     }
 
+    .combo {
+      grid-column: 2/6;
+    }
+
+    .phase {
+      grid-column: 1/2;
+    }
     .knight-stats {
       grid-column: 2/3;
     }
-
+    .combo-table {
+      grid-column: 3/5;
+    }
     .dragon-stats {
       grid-column: 5/6;
-    }
-
-    .combo {
-      grid-column: 2/6;
     }
 
     .draw {
@@ -74,7 +83,9 @@ template.innerHTML = html`
 
     <div class="combo" id="${dragonComboId}"></div>
 
+    <div class="phase" id="${phaseId}"></div>
     <div class="knight-stats" id="${knightStatsId}"></div>
+    <div class="combo-table" id="${comboTableId}"></div>
     <div class="dragon-stats" id="${dragonStatsId}"></div>
 
     <div class="combo" id="${knightComboId}"></div>
@@ -88,6 +99,7 @@ template.innerHTML = html`
 `;
 
 class El extends HTMLElement {
+  #comboTable: HTMLElement;
   #discard: HTMLElement;
   #dragonCombo: HTMLElement;
   #dragonStats: HTMLElement;
@@ -95,6 +107,7 @@ class El extends HTMLElement {
   #hand: HTMLElement;
   #knightCombo: HTMLElement;
   #knightStats: HTMLElement;
+  #phase: HTMLElement;
 
   constructor() {
     super();
@@ -106,13 +119,15 @@ class El extends HTMLElement {
 
     const getElementById = getElementByIdFactory(root);
 
+    this.#comboTable = getElementById(comboTableId);
     this.#discard = getElementById(discardId);
-    this.#dragonStats = getElementById(dragonStatsId);
     this.#dragonCombo = getElementById(dragonComboId);
+    this.#dragonStats = getElementById(dragonStatsId);
     this.#draw = getElementById(drawId);
     this.#hand = getElementById(handId);
-    this.#knightStats = getElementById(knightStatsId);
     this.#knightCombo = getElementById(knightComboId);
+    this.#knightStats = getElementById(knightStatsId);
+    this.#phase = getElementById(phaseId);
 
     const resetGame = getElementById(resetGameId);
     if (!(resetGame instanceof HTMLButtonElement))
@@ -121,6 +136,10 @@ class El extends HTMLElement {
       localStorage.clear();
       location.reload();
     };
+  }
+
+  set comboTable(table: HTMLElement) {
+    this.#comboTable.replaceChildren(table);
   }
 
   set discard(discard: HTMLElement) {
@@ -150,6 +169,10 @@ class El extends HTMLElement {
   set knightCombo(combo: HTMLElement) {
     this.#knightCombo.replaceChildren(combo);
   }
+
+  set phase(phase: HTMLElement) {
+    this.#phase.replaceChildren(phase);
+  }
 }
 
 customElements.define("battle-mode", El);
@@ -162,14 +185,20 @@ export type BattleView = {
 export const createBattle = (action: BattleAction): BattleView => {
   const el = new El();
 
-  const discard = createDiscard();
   const dragonCombo = createDragonCombo();
+
+  const phase = createPhase();
+  const knightStats = createKnightStats();
+  const comboTable = createComboTable();
   const dragonStats = createDragonStats();
+
+  const knightCombo = createKnightCombo();
+
   const draw = createDraw(action);
   const hand = createHand(action);
-  const knightCombo = createKnightCombo();
-  const knightStats = createKnightStats();
+  const discard = createDiscard();
 
+  el.comboTable = comboTable.el;
   el.discard = discard.el;
   el.dragonCombo = dragonCombo.el;
   el.dragonStats = dragonStats.el;
@@ -177,8 +206,10 @@ export const createBattle = (action: BattleAction): BattleView => {
   el.hand = hand.el;
   el.knightCombo = knightCombo.el;
   el.knightStats = knightStats.el;
+  el.phase = phase.el;
 
   const update: BattleView["update"] = (state) => {
+    comboTable.update(state);
     discard.update(state);
     dragonCombo.update(state);
     dragonStats.update(state);
@@ -186,6 +217,7 @@ export const createBattle = (action: BattleAction): BattleView => {
     hand.update(state);
     knightCombo.update(state);
     knightStats.update(state);
+    phase.update(state);
   };
 
   const view: BattleView = {

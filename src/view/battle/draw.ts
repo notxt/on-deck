@@ -1,9 +1,11 @@
 import { BattleAction } from "../../action.js";
 import { getElementByIdFactory, html } from "../../lib.js";
+import { BattlePhase } from "../../state.js";
 import { BattleView } from "../battle.js";
 
 const template = document.createElement("template");
 
+const wrapperId = "wrapper";
 const countId = "count";
 const drawId = "draw";
 
@@ -12,6 +14,10 @@ template.innerHTML = html`
     * {
       margin: 0;
       box-sizing: border-box;
+    }
+
+    .active {
+      color: magenta;
     }
 
     main {
@@ -24,14 +30,17 @@ template.innerHTML = html`
     }
   </style>
 
-  <header>Draw Pile</header>
-  <main>
-    <p>Card Count <span id="${countId}"></span></p>
-    <div id="${drawId}"></div>
-  </main>
+  <div id="${wrapperId}">
+    <header>Draw</header>
+    <main>
+      <p>Card Count <span id="${countId}"></span></p>
+      <div id="${drawId}"></div>
+    </main>
+  </div>
 `;
 
 class El extends HTMLElement {
+  #wrapper: HTMLElement;
   #draw: HTMLElement;
   #count: HTMLElement;
 
@@ -46,6 +55,7 @@ class El extends HTMLElement {
 
     const getElementById = getElementByIdFactory(root);
 
+    this.#wrapper = getElementById(wrapperId);
     this.#count = getElementById(countId);
     this.#draw = getElementById(drawId);
   }
@@ -62,6 +72,15 @@ class El extends HTMLElement {
 
     this.#draw.replaceChildren(button);
   }
+
+  set phase(phase: BattlePhase) {
+    if (phase === "draw") {
+      this.#wrapper.classList.add("active");
+      return;
+    }
+
+    this.#wrapper.classList.remove("active");
+  }
 }
 
 customElements.define("battle-draw", El);
@@ -70,6 +89,7 @@ export const createDraw = (action: BattleAction): BattleView => {
   const el = new El();
 
   const update: BattleView["update"] = (battle) => {
+    el.phase = battle.phase;
     el.count = battle.knight.deck.draw.length;
 
     if (battle.phase !== "draw") {
