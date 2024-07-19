@@ -1,5 +1,6 @@
-import { TitleAction } from "../action.js";
-import { html, querySelectorFactory } from "../lib.js";
+import { TitleAction } from "../core/action.js";
+import { View } from "../core/view.js";
+import { createShadowRoot, html } from "../lib.js";
 
 const template = document.createElement("template");
 template.innerHTML = html`
@@ -29,29 +30,40 @@ template.innerHTML = html`
         Dragon<br />
         Puncher
       </h1>
-      <button>Start</button>
+      <p>[Enter] Start</p>
     </main>
   </div>
 `;
 
 class El extends HTMLElement {
-  constructor(start: () => void) {
+  constructor() {
     super();
 
-    this.attachShadow({ mode: "open" });
-    const root = this.shadowRoot;
-    if (root === null) throw new Error("root is null");
-
-    root.appendChild(template.content.cloneNode(true));
-
-    const querySelector = querySelectorFactory(root);
-
-    const startButton = querySelector("button");
-    startButton.onclick = start;
+    createShadowRoot(this, template);
   }
 }
 
 customElements.define("title-mode", El);
 
-export const createTitleView = (action: TitleAction) =>
-  new El(action.startGame);
+export const createTitle = (action: TitleAction): View => {
+  const el = new El();
+
+  let startGame: () => void | undefined;
+
+  const onKey: View["keyPressed"] = (key) => {
+    if (key === "Enter") startGame();
+  };
+
+  const update: View["update"] = (data) => {
+    if (data.mode !== "title") return;
+    startGame = () => action.start(data);
+  };
+
+  const view: View = {
+    el,
+    keyPressed: onKey,
+    update,
+  };
+
+  return view;
+};

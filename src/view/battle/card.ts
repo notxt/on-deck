@@ -1,11 +1,11 @@
-import { getElementByIdFactory, html } from "../../lib.js";
-import { BattleCard } from "../../state.js";
+import { Card, Punch } from "../../core/state.js";
+import { createShadowRoot, html } from "../../lib.js";
 
-const template = document.createElement("template");
+const nameId = "name";
 
-const typeId = "type";
+const punchTemplate = document.createElement("template");
 
-template.innerHTML = html`
+punchTemplate.innerHTML = html`
   <style>
     * {
       margin: 0;
@@ -13,35 +13,59 @@ template.innerHTML = html`
     }
 
     main {
+      align-items: center;
+      border-radius: 5px;
       border-style: solid;
-      padding: 10px;
       display: flex;
-      flex-direction: column;
+      height: 150px;
       justify-content: center;
-      gap: 5px;
+      width: 100px;
     }
   </style>
 
   <main>
-    <div id="${typeId}"></div>
+    <div id="${nameId}"></div>
   </main>
 `;
 
-export class CardEl extends HTMLElement {
-  constructor(card: BattleCard) {
+class PunchEl extends HTMLElement {
+  constructor(card: Punch) {
     super();
 
-    this.attachShadow({ mode: "open" });
-    const root = this.shadowRoot;
-    if (root === null) throw new Error("root is null");
+    const { getElementById } = createShadowRoot(this, punchTemplate);
 
-    root.appendChild(template.content.cloneNode(true));
-
-    const getElementById = getElementByIdFactory(root);
-
-    const type = getElementById(typeId);
-    type.textContent = card.type.toUpperCase();
+    const type = getElementById(nameId);
+    type.textContent = card.name.toUpperCase();
   }
 }
 
-customElements.define("x-card", CardEl);
+customElements.define("card-punch", PunchEl);
+
+const blockTemplate = document.createElement("template");
+
+blockTemplate.innerHTML = html`
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      align-items: center;
+      border-radius: 5px;
+      border-style: solid;
+      display: flex;
+      height: 150px;
+      justify-content: center;
+      width: 100px;
+    }
+  </style>
+
+  <main>
+    <div id="${nameId}"></div>
+  </main>
+`;
+
+export const createCard = (card: Card): HTMLElement => {
+  return new PunchEl(card);
+};

@@ -1,4 +1,4 @@
-import { Card } from "./state.js";
+import { Card } from "./core/state.js";
 
 const { random, floor } = Math;
 
@@ -25,6 +25,8 @@ export const getElementByIdFactory = (shadow: ShadowRoot) => (id: string) => {
 type SelectorMap = {
   button: HTMLButtonElement;
   h1: HTMLHeadingElement;
+  h2: HTMLHeadingElement;
+  h3: HTMLHeadingElement;
   header: HTMLElement;
   main: HTMLElement;
   p: HTMLParagraphElement;
@@ -38,6 +40,14 @@ export const querySelectorFactory =
   <S extends keyof SelectorMap>(selector: S): SelectorMap[S] => {
     // const test = shadow.querySelector("tbody");
     const el = shadow.querySelector(selector);
+    if (el === null) throw new Error(`${selector} is null`);
+    return el;
+  };
+
+export const queryTemplateFactory =
+  (template: HTMLTemplateElement) =>
+  <S extends keyof SelectorMap>(selector: S): SelectorMap[S] => {
+    const el = template.querySelector(selector);
     if (el === null) throw new Error(`${selector} is null`);
     return el;
   };
@@ -58,4 +68,24 @@ export const shuffle = (cards: Card[]): Card[] => {
   }
 
   return shuffled;
+};
+
+export const createShadowRoot = (
+  element: Element,
+  template: HTMLTemplateElement
+) => {
+  element.attachShadow({ mode: "open" });
+  const root = element.shadowRoot;
+  if (root === null) throw new Error("root is null");
+
+  root.appendChild(template.content.cloneNode(true));
+
+  const querySelector = querySelectorFactory(root);
+  const getElementById = getElementByIdFactory(root);
+
+  return {
+    root,
+    querySelector,
+    getElementById,
+  };
 };

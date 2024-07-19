@@ -1,5 +1,5 @@
+import { BattlePhase } from "../../core/state.js";
 import { getElementByIdFactory, html } from "../../lib.js";
-import { BattlePhase } from "../../state.js";
 import { BattleView } from "../battle.js";
 
 const template = document.createElement("template");
@@ -59,12 +59,13 @@ customElements.define("battle-phase", El);
 export const createPhase = () => {
   const el = new El();
 
-  const update: BattleView["update"] = (state) => {
-    el.phase = state.phase;
+  const update: BattleView["update"] = (data) => {
+    el.phase = data.phase;
   };
 
   const view: BattleView = {
     el,
+    onKey: () => {},
     update,
   };
 
