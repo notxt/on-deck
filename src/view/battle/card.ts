@@ -1,4 +1,4 @@
-import { Card, Punch } from "../../core/state.js";
+import { CardData, Punch } from "../../core/state.js";
 import { createShadowRoot, html } from "../../lib.js";
 
 const nameId = "name";
@@ -66,6 +66,6 @@ blockTemplate.innerHTML = html`
   </main>
 `;
 
-export const createCard = (card: Card): HTMLElement => {
+export const createCard = (card: CardData): HTMLElement => {
   return new PunchEl(card);
 };

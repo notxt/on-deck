@@ -1,5 +1,3 @@
-import { BattleAction } from "../core/action.js";
-import { GameKey } from "../core/keyboard.js";
 import { BattleMode } from "../core/state.js";
 import { View } from "../core/view.js";
 import { getElementByIdFactory, html } from "../lib.js";
@@ -26,18 +24,24 @@ template.innerHTML = html`
     main {
       display: grid;
       gap: 15px;
-      grid-template-rows: 1fr 2fr 4fr 2fr;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 20fr;
       height: 100vh;
       padding: 30px;
       width: 100vw;
+    }
+
+    .debug {
+      grid-column: 1/4;
     }
   </style>
 
   <main>
     <div class="debug" id="${debugPanelId}"></div>
-    <div class="deck" id="${dragonDeckId}"></div>
-    <div class="combat" id="${combatAreaId}"></div>
-    <div class="deck" id="${knightDeckId}"></div>
+
+    <div id="${knightDeckId}"></div>
+    <div id="${combatAreaId}"></div>
+    <div id="${dragonDeckId}"></div>
   </main>
 `;
 
@@ -82,25 +86,18 @@ class El extends HTMLElement {
 
 customElements.define("battle-mode", El);
 
-export const createBattle = (action: BattleAction): View => {
+export const createBattle = (): View => {
   const el = new El();
 
-  const debugPanel = createDebugPanel(action);
+  const debugPanel = createDebugPanel();
   const combatArea = createCombatArea();
   const dragonDeck = createDragonDeck();
-  const knightDeck = createKnightDeck(action);
+  const knightDeck = createKnightDeck();
 
   el.combatArea = combatArea.el;
   el.debugPanel = debugPanel.el;
   el.dragonDeck = dragonDeck.el;
   el.knightDeck = knightDeck.el;
-
-  const onKey: View["keyPressed"] = (key, data) => {
-    if (data.mode !== "battle") return;
-
-    debugPanel.onKey(key, data);
-    knightDeck.onKey(key, data);
-  };
 
   const update: View["update"] = (data) => {
     if (data.mode !== "battle") return;
@@ -112,7 +109,6 @@ export const createBattle = (action: BattleAction): View => {
 
   const view: View = {
     el,
-    keyPressed: onKey,
     update: update,
   };
 
@@ -121,6 +117,5 @@ export const createBattle = (action: BattleAction): View => {
 
 export type BattleView = {
   el: HTMLElement;
-  onKey: (key: GameKey, data: BattleMode) => void;
   update: (data: BattleMode) => void;
 };

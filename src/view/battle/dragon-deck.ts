@@ -1,111 +1,99 @@
-import { getElementByIdFactory, html } from "../../lib.js";
+import { Card } from "../../core/state.js";
+import { createShadowRoot, html } from "../../lib.js";
 import { BattleView } from "../battle.js";
-import { createCard } from "./card.js";
 
 const template = document.createElement("template");
 
-const discardCountId = "discard-count";
-const drawCountId = "draw-count";
-const handContentId = "hand-content";
+const discardId = "discard";
+const drawId = "draw";
+const handId = "hand";
 
 template.innerHTML = html`
   <style>
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-    main {
-      display: grid;
-      column-gap: 15px;
-      grid-template-columns: 1fr 4fr 1fr;
-      grid-template-rows: 1fr 5fr;
-    }
-
-    .hand-content {
+    :host {
       display: flex;
-      justify-content: space-around;
+      flex-direction: column;
+      gap: 15px;
     }
 
     section {
-      height: 100%;
-    }
-
-    section > div {
-      border: dotted;
+      border: 1px dotted var(--font-color);
       padding: 10px;
     }
 
-    .card {
-      align-items: center;
-      border-radius: 5px;
-      border-style: solid;
-      display: flex;
-      justify-content: center;
-      min-height: 150px;
-      width: 100px;
+    table {
+      width: 100%;
+    }
+
+    th,
+    td {
+      padding: 2px;
+      text-align: right;
+    }
+
+    ul {
+      list-style-type: none;
     }
   </style>
 
-  <div>
-    <main>
-      <h2>Draw</h2>
-      <h2>Hand</h2>
-      <h2>Discard</h2>
+  <h2>Dragon</h2>
+  <section>
+    <h3>Draw</h3>
+    <ul id="${drawId}"></ul>
+  </section>
 
-      <section class="draw">
-        <div>
-          <div class="card"></div>
-          <p>Card Count <span id="${drawCountId}"></span></p>
-        </div>
-      </section>
+  <section>
+    <h3>Hand</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>MOV</th>
+          <th>DMG</th>
+          <th>STP</th>
+          <th>RCV</th>
+          <th>RCV-BLK</th>
+        </tr>
+      </thead>
+      <tbody id="${handId}"></tbody>
+    </table>
+  </section>
 
-      <section class="hand">
-        <div class="hand-content" id="${handContentId}"></div>
-      </section>
-
-      <section class="discard">
-        <div>
-          <div class="card"></div>
-          <p>Card Count <span id="${discardCountId}"></span></p>
-        </div>
-      </section>
-    </main>
-  </div>
+  <section>
+    <h3>Discard</h3>
+    <ul id="${discardId}"></ul>
+  </section>
 `;
 
 class El extends HTMLElement {
-  #discardCount: HTMLElement;
-  #drawCount: HTMLElement;
-  #handContent: HTMLElement;
+  #discard: HTMLElement;
+  #draw: HTMLElement;
+  #hand: HTMLElement;
 
   constructor() {
     super();
 
-    this.attachShadow({ mode: "open" });
-    const root = this.shadowRoot;
-    if (root === null) throw new Error("root is null");
+    const { getElementById } = createShadowRoot(this, template);
 
-    root.appendChild(template.content.cloneNode(true));
-
-    const getElementById = getElementByIdFactory(root);
-
-    this.#discardCount = getElementById(discardCountId);
-    this.#drawCount = getElementById(drawCountId);
-    this.#handContent = getElementById(handContentId);
+    this.#discard = getElementById(discardId);
+    this.#draw = getElementById(drawId);
+    this.#hand = getElementById(handId);
   }
 
-  set discardCount(count: number) {
-    this.#discardCount.textContent = count.toString();
+  set discard(cards: HTMLLIElement[]) {
+    this.#discard.replaceChildren(...cards);
   }
 
-  set drawCount(count: number) {
-    this.#drawCount.textContent = count.toString();
+  set draw(cards: HTMLLIElement[]) {
+    this.#draw.replaceChildren(...cards);
   }
 
-  set handContent(cards: HTMLElement[]) {
-    this.#handContent.replaceChildren(...cards);
+  set hand(cards: HTMLTableRowElement[]) {
+    this.#hand.replaceChildren(...cards);
   }
 }
 
@@ -115,18 +103,45 @@ export const createDragonDeck = (): BattleView => {
   const el = new El();
 
   const update: BattleView["update"] = (data) => {
-    const { dragonDiscard, dragonDraw, dragonHand } = data;
+    const { knightDeck } = data;
 
-    el.discardCount = dragonDiscard.length;
-    el.drawCount = dragonDraw.length;
-    el.handContent = dragonHand.map((card) => createCard(card));
+    el.draw = knightDeck
+      .filter((card) => card.position == "draw")
+      .map(createCardItem);
+
+    el.hand = knightDeck
+      .filter((card) => card.position === "hand")
+      .map((card) => {
+        const name = createCell(card.name);
+        const damage = createCell(card.damage.toString());
+        const recovery = createCell(card.recovery.toString());
+        const recoveryBlock = createCell(card.recoveryBlock.toString());
+
+        const tr = document.createElement("tr");
+        tr.append(name, damage, recovery, recoveryBlock);
+
+        return tr;
+      });
+
+    return;
   };
 
   const view: BattleView = {
     el,
-    onKey: () => {},
     update,
   };
 
   return view;
+};
+
+const createCardItem = (card: Card) => {
+  const li = document.createElement("li");
+  li.textContent = card.name;
+  return li;
+};
+
+const createCell = (content: string) => {
+  const td = document.createElement("td");
+  td.textContent = content;
+  return td;
 };

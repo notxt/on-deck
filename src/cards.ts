@@ -1,34 +1,34 @@
-import { Card } from "./core/state.js";
+import { CardData } from "./core/state.js";
 
-export const punchLight: Card = {
+export const punchLight: CardData = {
   damage: 1,
-  name: "light punch",
+  name: "LP",
+  recovery: 1,
   recoveryBlock: 3,
-  recoveryHit: 1,
   startup: 3,
+  stun: 5,
   stunBlock: 1,
-  stunHit: 5,
   type: "punch",
 };
 
-export const punchMedium: Card = {
+export const punchMedium: CardData = {
   damage: 2,
-  name: "medium punch",
+  name: "MP",
+  recovery: 2,
   recoveryBlock: 5,
-  recoveryHit: 2,
   startup: 5,
+  stun: 7,
   stunBlock: 2,
-  stunHit: 7,
   type: "punch",
 };
 
-export const punchHeavy: Card = {
+export const punchHeavy: CardData = {
   damage: 4,
-  name: "heavy punch",
+  name: "HP",
+  recovery: 3,
   recoveryBlock: 7,
-  recoveryHit: 3,
   startup: 7,
+  stun: 7,
   stunBlock: 3,
-  stunHit: 7,
   type: "punch",
 };

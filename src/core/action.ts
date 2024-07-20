@@ -1,6 +1,8 @@
 import { punchHeavy, punchMedium } from "../cards.js";
 import { shuffle } from "../lib.js";
-import { BattleMode, GameData, State, TitleMode } from "./state.js";
+import { BattleMode, Card, CardData, State, TitleMode } from "./state.js";
+
+const { random, floor } = Math;
 
 export type TitleAction = {
   start: (data: TitleMode) => void;
@@ -10,33 +12,31 @@ const createTitleAction = (state: State): TitleAction => {
   const start: TitleAction["start"] = (data: TitleMode) => {
     const { baseDeck, baseHp } = data;
 
-    const dragonDraw = shuffle([
+    const dragonCollection: CardData[] = [
       punchMedium,
       punchMedium,
       punchHeavy,
       punchHeavy,
-    ]);
-    const dragonHand = dragonDraw.splice(0, 3);
-    const [dragonPlay] = dragonHand.splice(0, 1);
-    if (!dragonPlay) throw new Error("dragon play card is undefined");
+    ];
+
+    const dragonDeck = shuffle(dragonCollection).map(initCard);
+    draw(dragonDeck);
+    draw(dragonDeck);
+    draw(dragonDeck);
+    play(dragonDeck, 0);
 
     const battleMode: BattleMode = {
       baseDeck,
       baseHp,
-      dragonDiscard: [],
-      dragonDraw,
-      dragonHand,
+      dragonDeck,
       dragonHp: 10,
-      dragonPlay,
       dragonStun: 0,
-      knightDiscard: [],
-      knightDraw: shuffle(baseDeck),
-      knightHand: [],
+      frameIndex: 0,
+      frames: [{ dragon: null, knight: null }],
+      knightDeck: shuffle(baseDeck).map(initCard),
       knightHp: baseHp,
-      knightPlay: null,
       knightStun: 0,
       mode: "battle",
-      phase: "draw",
     };
 
     state.update(battleMode);
@@ -49,6 +49,56 @@ const createTitleAction = (state: State): TitleAction => {
   return action;
 };
 
+const draw = (deck: Card[]): void => {
+  const pile = deck.filter((card) => card.position === "draw");
+  if (pile.length < 1) throw new Error("draw pile is empty");
+
+  const index = floor(random() * pile.length);
+  const card = pile[index];
+  if (typeof card === "undefined")
+    throw new Error("card at index is undefined");
+
+  card.position = "hand";
+};
+
+const play = (deck: Card[], index: number): void => {
+  const hand = deck.filter((card) => card.position === "hand");
+  if (hand.length < 1) throw new Error("hand is empty");
+
+  const card = hand[index];
+  if (typeof card === "undefined")
+    throw new Error(`no card at hand index ${index}`);
+
+  card.position = "discard";
+};
+
+const initCard = (data: CardData): Card => {
+  const {
+    damage,
+    name,
+    recovery,
+    recoveryBlock,
+    startup,
+    stun,
+    stunBlock,
+    type,
+  } = data;
+
+  const card: Card = {
+    damage,
+    name,
+    recovery,
+    recoveryBlock,
+    startup,
+    stun,
+    stunBlock,
+    type,
+    position: "draw",
+  };
+
+  return card;
+};
+
 export type BattleAction = {
   drawCard: (data: BattleMode) => void;
   playCard: (data: BattleMode, index: number) => void;
@@ -57,39 +107,29 @@ export type BattleAction = {
 
 const createBattleAction = (state: State): BattleAction => {
   const drawCard: BattleAction["drawCard"] = (data) => {
-    const { knightDraw, knightHand } = data;
+    const hand = data.knightDeck.filter((card) => card.position === "hand");
+    if (hand.length >= 3) throw new Error("hand is full");
 
-    const diff: Partial<GameData> = {
-      mode: "battle",
-    };
+    const draw = data.knightDeck.filter((card) => card.position === "draw");
+    if (draw.length < 1) throw new Error("no card to draw");
 
-    const card = knightDraw.pop();
-    if (!card) throw Error("draw card is undefined");
-    diff.knightDraw = knightDraw;
+    const card = draw[0];
+    if (typeof card === "undefined") throw new Error("card is undefined");
+    card.position = "hand";
 
-    knightHand.push(card);
-    diff.knightHand = knightHand;
-
-    if (knightDraw.length < 1) diff.phase = "play";
-    if (knightHand.length >= 3) diff.phase = "play";
-
-    state.update(diff);
+    state.update(data);
   };
 
   const playCard: BattleAction["playCard"] = (data, index) => {
-    const { knightHand } = data;
+    const hand = data.knightDeck.filter((card) => card.position === "hand");
 
-    const [card] = knightHand.splice(index, 1);
-    if (!card) throw new Error(`card at hand index ${index} is undefined`);
+    const card = hand[index];
+    if (typeof card === "undefined")
+      throw new Error(`no card at hand index ${index}`);
 
-    const diff: Partial<GameData> = {
-      knightHand,
-      knightPlay: card,
-      mode: "battle",
-      phase: "fight",
-    };
+    card.position = "discard";
 
-    state.update(diff);
+    state.update(data);
   };
 
   const action: BattleAction = {

@@ -7,7 +7,7 @@
 
 :root {
   --color-body-background: hsl(0 0% 10%);
-  --color-body-font: hsl(0 0% 80%);
+  --font-color: hsl(0 0% 80%);
 }
 
 a {
@@ -20,6 +20,6 @@ a:visited {
 
 body {
   background-color: var(--color-body-background);
-  color: var(--color-body-font);
+  color: var(--font-color);
   font-family: monospace;
 }

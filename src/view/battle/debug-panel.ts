@@ -1,4 +1,3 @@
-import { BattleAction } from "../../core/action.js";
 import { html } from "../../lib.js";
 import { BattleView } from "../battle.js";
 
@@ -27,19 +26,11 @@ class El extends HTMLElement {
 
 customElements.define("debug-panel", El);
 
-export const createDebugPanel = (action: BattleAction): BattleView => {
+export const createDebugPanel = (): BattleView => {
   const el = new El();
-
-  const onKey: BattleView["onKey"] = (key) => {
-    if (key === "r") {
-      action.resetGame();
-      return;
-    }
-  };
 
   const view: BattleView = {
     el,
-    onKey,
     update: () => {},
   };
 

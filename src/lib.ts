@@ -1,4 +1,4 @@
-import { Card } from "./core/state.js";
+import { CardData } from "./core/state.js";
 
 const { random, floor } = Math;
 
@@ -52,8 +52,8 @@ export const queryTemplateFactory =
     return el;
   };
 
-export const shuffle = (cards: Card[]): Card[] => {
-  const shuffled: Card[] = [];
+export const shuffle = (cards: CardData[]): CardData[] => {
+  const shuffled: CardData[] = [];
 
   let deck = cards;
   while (deck.length > 0) {

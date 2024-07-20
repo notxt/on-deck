@@ -1,4 +1,4 @@
-import { Card } from "../../core/state.js";
+import { CardData } from "../../core/state.js";
 import { createShadowRoot, html } from "../../lib.js";
 
 const template = document.createElement("template");
@@ -52,7 +52,7 @@ class El extends HTMLElement {
 
 customElements.define("card-stats", El);
 
-export const createCardStats = (card: Card): HTMLElement => {
+export const createCardStats = (card: CardData): HTMLElement => {
   const el = new El();
 
   el.startup = card.startup;

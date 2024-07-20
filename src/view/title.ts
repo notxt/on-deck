@@ -1,4 +1,3 @@
-import { TitleAction } from "../core/action.js";
 import { View } from "../core/view.js";
 import { createShadowRoot, html } from "../lib.js";
 
@@ -45,23 +44,15 @@ class El extends HTMLElement {
 
 customElements.define("title-mode", El);
 
-export const createTitle = (action: TitleAction): View => {
+export const createTitle = (): View => {
   const el = new El();
-
-  let startGame: () => void | undefined;
-
-  const onKey: View["keyPressed"] = (key) => {
-    if (key === "Enter") startGame();
-  };
 
   const update: View["update"] = (data) => {
     if (data.mode !== "title") return;
-    startGame = () => action.start(data);
   };
 
   const view: View = {
     el,
-    keyPressed: onKey,
     update,
   };
 

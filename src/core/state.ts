@@ -3,21 +3,24 @@ import { punchHeavy, punchLight, punchMedium } from "../cards.js";
 export type Punch = {
   damage: number;
   name: string;
+  recovery: number;
   recoveryBlock: number;
-  recoveryHit: number;
   startup: number;
+  stun: number;
   stunBlock: number;
-  stunHit: number;
   type: "punch";
 };
 
-export type Card = Punch;
-export type CardType = Card["type"];
+export type CardData = Punch;
+export type CardType = CardData["type"];
 
-export type BattlePhase = "draw" | "play" | "fight";
+export type CardPosition = "draw" | "hand" | "discard";
+export type Card = CardData & {
+  position: CardPosition;
+};
 
 type Base = {
-  baseDeck: Card[];
+  baseDeck: CardData[];
   baseHp: number;
 };
 
@@ -25,21 +28,27 @@ export type TitleMode = Base & {
   mode: "title";
 };
 
+type MovePhase = "startup" | "active" | "recovery";
+export type PlayerFrame = {
+  move: string;
+  movePhase: MovePhase;
+  moveIndex: number;
+};
+export type Frame = {
+  knight: PlayerFrame | null;
+  dragon: PlayerFrame | null;
+};
+
 export type BattleMode = Base & {
-  dragonDiscard: Card[];
-  dragonDraw: Card[];
-  dragonHand: Card[];
+  dragonDeck: Card[];
   dragonHp: number;
-  dragonPlay: Card | null;
   dragonStun: number;
-  knightDiscard: Card[];
-  knightDraw: Card[];
-  knightHand: Card[];
+  knightDeck: Card[];
   knightHp: number;
-  knightPlay: Card | null;
   knightStun: number;
+  frameIndex: number;
+  frames: Frame[];
   mode: "battle";
-  phase: BattlePhase;
 };
 
 export type GameData = TitleMode | BattleMode;
@@ -108,7 +117,7 @@ const loadData = (): GameData | null => {
 };
 
 const newGame = (): GameData => {
-  const baseDeck: Card[] = [
+  const baseDeck: CardData[] = [
     punchLight,
     punchLight,
     punchMedium,

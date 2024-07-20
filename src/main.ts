@@ -1,5 +1,5 @@
 import { createAction } from "./core/action.js";
-import { watchKeyPressedFactory } from "./core/keyboard.js";
+import { listenForKeyPress } from "./core/keyboard.js";
 import { createState } from "./core/state.js";
 import { createView } from "./core/view.js";
 
@@ -8,12 +8,10 @@ if (body === null) throw new Error("body is null");
 
 const state = createState();
 const action = createAction(state);
+listenForKeyPress(state, action);
 
-const view = createView(action);
+const view = createView();
 state.watchUpdated(view.update);
-
-const watchKeyPressed = watchKeyPressedFactory(state);
-watchKeyPressed(view.keyPressed);
 
 state.update({});
 
