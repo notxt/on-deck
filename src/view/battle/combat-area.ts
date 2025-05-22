@@ -1,8 +1,12 @@
-import { Frame, PlayerFrame } from "../../core/state.js";
+import { Card, Frame } from "../../core/state.js";
 import { createShadowRoot, html } from "../../lib.js";
 import { BattleView } from "../battle.js";
 
 const template = document.createElement("template");
+
+const dragonCardId = "dragon-card";
+const framesId = "frames";
+const knightCardId = "knight-card";
 
 template.innerHTML = html`
   <style>
@@ -18,6 +22,8 @@ template.innerHTML = html`
     }
 
     section {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       border: 1px dotted var(--font-color);
       padding: 10px;
     }
@@ -29,7 +35,7 @@ template.innerHTML = html`
     th,
     td {
       padding: 2px;
-      text-align: right;
+      text-align: center;
     }
   </style>
 
@@ -37,40 +43,70 @@ template.innerHTML = html`
 
   <section>
     <table>
+      <caption>
+        Knight Play
+      </caption>
+      <tbody id="${knightCardId}"></tbody>
+    </table>
+
+    <table>
+      <caption>
+        Frames
+      </caption>
       <thead>
         <tr>
-          <th colspan="3">Knight</th>
           <th>Frame</th>
-          <th colspan="3">Dragon</th>
-        </tr>
-        <tr>
-          <th>MOV</th>
-          <th>PHS</th>
-          <th>CNT</th>
-          <th></th>
-          <th>MOV</th>
-          <th>PHS</th>
-          <th>CNT</th>
+          <th>Knight</th>
+          <th>Dragon</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody id="${framesId}"></tbody>
+    </table>
+
+    <table>
+      <caption>
+        Dragon Play
+      </caption>
+      <tbody id="${dragonCardId}"></tbody>
     </table>
   </section>
 `;
 
 class El extends HTMLElement {
-  #tbody: HTMLTableSectionElement;
+  #dragonCard: HTMLElement;
+  #frames: HTMLElement;
+  #knightCard: HTMLElement;
 
   constructor() {
     super();
 
-    const { querySelector } = createShadowRoot(this, template);
+    const { getElementById } = createShadowRoot(this, template);
 
-    this.#tbody = querySelector("tbody");
+    this.#dragonCard = getElementById(dragonCardId);
+    this.#frames = getElementById(framesId);
+    this.#knightCard = getElementById(knightCardId);
   }
 
-  set rows(rows: HTMLTableRowElement[]) {
-    this.#tbody.replaceChildren(...rows);
+  set frames(rows: HTMLTableRowElement[]) {
+    this.#frames.replaceChildren(...rows);
+  }
+
+  set dragonCard(card: Card | undefined) {
+    if (typeof card === "undefined") {
+      this.#dragonCard.textContent = "";
+      return;
+    }
+
+    this.#dragonCard.replaceChildren(...createCardRows(card));
+  }
+
+  set knightCard(card: Card | undefined) {
+    if (typeof card === "undefined") {
+      this.#knightCard.textContent = "";
+      return;
+    }
+
+    this.#knightCard.replaceChildren(...createCardRows(card));
   }
 }
 
@@ -80,11 +116,11 @@ export const createCombatArea = (): BattleView => {
   const el = new El();
 
   const update: BattleView["update"] = (data) => {
-    const { frameIndex, frames } = data;
+    const { currentFrame, knight, dragon, frames } = data;
 
-    const createRow = createRowFactory(frameIndex);
-
-    el.rows = frames.map(createRow);
+    el.knightCard = knight.deck.find((card) => card.position === "play");
+    el.dragonCard = dragon.deck.find((card) => card.position === "play");
+    el.frames = createFrameRows(frames, currentFrame);
   };
 
   const view: BattleView = {
@@ -95,43 +131,81 @@ export const createCombatArea = (): BattleView => {
   return view;
 };
 
-const createPlayerCells = (
-  frame: PlayerFrame
-): [HTMLTableCellElement, HTMLTableCellElement, HTMLTableCellElement] => {
-  const move = document.createElement("td");
-  move.textContent = frame.move;
+const createMovRow = (card: Card): HTMLTableRowElement => {
+  const header = document.createElement("th");
+  header.textContent = "MOV";
 
-  const moveIndex = document.createElement("td");
-  moveIndex.textContent = frame.moveIndex.toString();
+  const value = document.createElement("td");
+  value.textContent = card.name;
 
-  const movePhase = document.createElement("td");
-  movePhase.textContent = frame.movePhase;
+  const row = document.createElement("tr");
+  row.append(header, value);
 
-  return [move, movePhase, moveIndex];
+  return row;
+};
+const createDmgRow = (card: Card): HTMLTableRowElement => {
+  const header = document.createElement("th");
+  header.textContent = "DMG";
+
+  const value = document.createElement("td");
+  value.textContent = card.damage.toString();
+
+  const row = document.createElement("tr");
+  row.append(header, value);
+
+  return row;
+};
+const createSpdRow = (card: Card): HTMLTableRowElement => {
+  const header = document.createElement("th");
+  header.textContent = "SPD";
+
+  const value = document.createElement("td");
+  value.textContent = card.startup.toString();
+
+  const row = document.createElement("tr");
+  row.append(header, value);
+
+  return row;
 };
 
-const blankPlayerCell = (): HTMLTableCellElement => {
-  const td = document.createElement("td");
-  td.colSpan = 3;
-  return td;
+const createCardRows = (
+  card: Card
+): [HTMLTableRowElement, HTMLTableRowElement, HTMLTableRowElement] => {
+  return [createMovRow(card), createDmgRow(card), createSpdRow(card)];
 };
 
-const createRowFactory =
-  (currentIndex: number) =>
-  (frame: Frame, index: number): HTMLTableRowElement => {
-    const { knight, dragon } = frame;
+const createFrameRows = (
+  frames: Frame[],
+  currentFrame: number
+): HTMLTableRowElement[] => {
+  const rows: HTMLTableRowElement[] = [];
 
-    const frameCell = document.createElement("td");
-    frameCell.textContent = index.toString();
-    if (index === currentIndex) frameCell.textContent = `> ${index} <`;
-
-    const knightCells =
-      knight === null ? [blankPlayerCell()] : createPlayerCells(knight);
-    const dragonCells =
-      dragon === null ? [blankPlayerCell()] : createPlayerCells(dragon);
-
+  for (let index = 0; index <= currentFrame; index++) {
     const tr = document.createElement("tr");
-    tr.append(...knightCells, frameCell, ...dragonCells);
+    rows.push(tr);
 
-    return tr;
-  };
+    const indexCell = document.createElement("td");
+    indexCell.textContent = index.toString();
+    if (index === currentFrame) indexCell.textContent = `> ${index} <`;
+    tr.appendChild(indexCell);
+
+    const frame = frames[index];
+    if (typeof frame === "undefined") {
+      const td = document.createElement("td");
+      td.colSpan = 2;
+      td.textContent = "Press [Tab] to run frame";
+      tr.appendChild(td);
+      break;
+    }
+
+    const knightCell = document.createElement("td");
+    knightCell.textContent = frame.knight.card;
+
+    const dragonCell = document.createElement("td");
+    dragonCell.textContent = frame.dragon.card;
+
+    tr.append(knightCell, dragonCell);
+  }
+
+  return rows;
+};

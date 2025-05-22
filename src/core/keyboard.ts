@@ -6,7 +6,7 @@ type ControlKey = (typeof controlKeys)[number];
 const isControlKey = (key: string): key is ControlKey =>
   controlKeys.includes(key as ControlKey);
 
-export const gameKeys = ["0", "1", "2", "r", "Enter"] as const;
+export const gameKeys = ["0", "1", "2", "r", "Enter", "Tab"] as const;
 export type GameKey = (typeof gameKeys)[number];
 const isGameKey = (key: string): key is GameKey =>
   gameKeys.includes(key as GameKey);
@@ -28,6 +28,7 @@ export const listenForKeyPress = (state: State, action: Action): void => {
 
     if (!isGameKey(key)) return;
 
+    event.preventDefault();
     handleKey(key);
   };
 
@@ -64,15 +65,22 @@ const handleKeyFactory = (state: State, action: Action) => {
 
 const handleBattleKeyFactory =
   (action: BattleAction) => (data: BattleMode, key: GameKey) => {
-    console.log(data);
-    const hand = data.knightDeck.filter((card) => card.position === "hand");
-    const draw = data.knightDeck.filter((card) => card.position === "draw");
+    const { knight } = data;
+
+    const hand = knight.deck.filter((card) => card.position === "hand");
+    const draw = knight.deck.filter((card) => card.position === "draw");
 
     if (key === "Enter") {
       if (hand.length >= 3) return;
       if (draw.length < 1) return;
 
       action.drawCard(data);
+
+      return;
+    }
+
+    if (key === "Tab") {
+      action.
 
       return;
     }

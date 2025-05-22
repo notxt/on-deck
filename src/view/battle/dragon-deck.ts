@@ -103,13 +103,15 @@ export const createDragonDeck = (): BattleView => {
   const el = new El();
 
   const update: BattleView["update"] = (data) => {
-    const { knightDeck } = data;
+    const {
+      dragon: { deck },
+    } = data;
 
-    el.draw = knightDeck
+    el.draw = deck
       .filter((card) => card.position == "draw")
       .map(createCardItem);
 
-    el.hand = knightDeck
+    el.hand = deck
       .filter((card) => card.position === "hand")
       .map((card) => {
         const name = createCell(card.name);
@@ -122,6 +124,10 @@ export const createDragonDeck = (): BattleView => {
 
         return tr;
       });
+
+    el.discard = deck
+      .filter((card) => card.position === "discard")
+      .map(createCardItem);
 
     return;
   };

@@ -14,7 +14,7 @@ export type Punch = {
 export type CardData = Punch;
 export type CardType = CardData["type"];
 
-export type CardPosition = "draw" | "hand" | "discard";
+export type CardPosition = "draw" | "hand" | "discard" | "play";
 export type Card = CardData & {
   position: CardPosition;
 };
@@ -28,25 +28,22 @@ export type TitleMode = Base & {
   mode: "title";
 };
 
-type MovePhase = "startup" | "active" | "recovery";
-export type PlayerFrame = {
-  move: string;
-  movePhase: MovePhase;
-  moveIndex: number;
-};
 export type Frame = {
-  knight: PlayerFrame | null;
-  dragon: PlayerFrame | null;
+  dragon: number;
+  knight: number;
+};
+
+export type Fighter = {
+  deck: Card[];
+  hp: number;
+  moveStart: number | null;
+  stun: number;
 };
 
 export type BattleMode = Base & {
-  dragonDeck: Card[];
-  dragonHp: number;
-  dragonStun: number;
-  knightDeck: Card[];
-  knightHp: number;
-  knightStun: number;
-  frameIndex: number;
+  currentFrame: number;
+  dragon: Fighter;
+  knight: Fighter;
   frames: Frame[];
   mode: "battle";
 };
@@ -82,7 +79,7 @@ export const createState = (): State => {
 
   const reset: State["reset"] = () => {
     localStorage.removeItem(key);
-    update(newGame());
+    window.location.reload();
   };
 
   const state: State = {

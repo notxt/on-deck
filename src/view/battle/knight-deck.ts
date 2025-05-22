@@ -103,7 +103,9 @@ export const createKnightDeck = (): BattleView => {
   const el = new El();
 
   const update: BattleView["update"] = (data) => {
-    const { knightDeck: deck } = data;
+    const {
+      knight: { deck },
+    } = data;
 
     el.draw = deck
       .filter((card) => card.position == "draw")

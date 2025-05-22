@@ -24,7 +24,7 @@ template.innerHTML = html`
     main {
       display: grid;
       gap: 15px;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 3fr 1fr;
       grid-template-rows: 1fr 20fr;
       height: 100vh;
       padding: 30px;
